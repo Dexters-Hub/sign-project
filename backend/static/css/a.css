@@ -1,0 +1,13 @@
+.box {
+    width: 100px;
+    height: 100px;
+    background-color: rgb(17, 16, 16);
+    animation: delay-animation 3s;
+  }
+  
+  @keyframes delay-animation {
+    0% { opacity: 0; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  

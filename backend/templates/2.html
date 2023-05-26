@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    
+    
+    <meta charset="UTF-8">
+    <title>{{ head }}</title>
+    <link rel="shortcut icon" type="image/jpg" href="{{ t }}">
+  
+
+<link href="{{ url_for('static', filename='css/my.css') }}" rel="stylesheet" />  
+
+
+  </head>
+
+<body>
+  <form method="post" name="submit" value="run pro">
+
+  <div class=".container-fluid">
+    <header>
+      <div class="container-box">
+        <nav class="navbar">
+          <h1 class="logo">{{ head }}</h1>
+          <ul>
+   
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('home') }}#features-sec">Language</a></li>
+           
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <div class="container">
+        <div class="firstdivmain">
+
+            <div class="firstdiv">
+                <h1>
+                  Webcam:
+                </h1>
+                <img  src="{{ url_for('video') }}" width="600" height="405" />
+            </div>
+            <div class="button-div">
+
+              <div class="update-box">
+                
+                
+                <input value="START"  type="submit" name="submit">
+                <input value="STOP" type="submit" name="submit">
+
+            </div>
+            </div>
+        </div>
+        <h1>{{str}}</h1>
+        <div class="seconddivmain">
+
+            <div class="seconddiv" >
+                <h1 >
+                   Text Message:
+                </h1>
+                <textarea name="a" id="final_string" cols="30" rows="28"></textarea>
+                <div class="a">
+                 <button class="speaker-btn" type="submit" value="AUDIO" name="submit">
+                  <i class="fas fa-volume-up"></i>
+                </button>
+                </div>
+
+                <div class="clearbutton">
+                  <div class="update-box">
+                    <input value="CLEAR" type="button" onclick="cleartext()" name="clear">
+                  </div>
+               </div>
+              </div>
+  </form>
+                <script>
+                  function cleartext(){
+                    document.getElementById("final_string").value="";
+                  }
+
+
+                </script>
+            </div>
+        </div>
+    </div>
+
+   
+    
+
+  </div>
+<script>
+    function fetchData() {
+        fetch ('{{ url_for('video') }}')
+            .then(response => {
+                const reader = response.body.getReader();
+                let decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                return reader.read().then(function processResult(result) {
+                    const chunk = decoder.decode(result.value || new Uint8Array(), { stream: !result.done });
+                    buffer += chunk;
+
+                    // Check if the buffer contains the final string
+                    const finalStringIndex = buffer.lastIndexOf('Additional string data: ');
+                    if (finalStringIndex !== -1) {
+                        const finalString = buffer.slice(finalStringIndex + 24, -4); // Extract the final string
+                        document.getElementById('final_string').textContent = finalString;
+                        buffer = ''; // Clear the buffer to handle subsequent frames
+                        document.getElementById('final_string').value = finalString;
+                    }
+
+                    if (result.done) {
+                        return;
+                    }
+
+                    return reader.read().then(processResult);
+                });
+            });
+    }
+
+    fetchData();  // Initial fetch to start receiving data
+</script>
+</body>
+</html> 
+
