@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
+import './App.css';
+import Home from './components/Home.js';
 
 const socket = io('http://127.0.0.1:8000');
 
@@ -10,6 +12,11 @@ const App = () => {
 
   const videoRef = useRef(null);
   const frameIntervalRef = useRef(null);
+
+  const handleVideoClick = () => {
+    // Play the video
+    videoRef.current.play();
+  };
 
   useEffect(() => {
     const startCamera = async () => {
@@ -48,13 +55,11 @@ const App = () => {
       console.error('Error processing frame:', data.error);
       setIsProcessing(false);
     });
-
-    
   };
 
   const startFrameProcessing = () => {
     setIsProcessing(true);
-  
+
     const processFrame = () => {
       const video = videoRef.current;
       const canvas = document.createElement('canvas');
@@ -62,21 +67,20 @@ const App = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
       const image = canvas.toDataURL('image/jpeg');
       const signLanguage = document.getElementById('signLanguage').value;
-  
+
       sendFrameToBackend(image, signLanguage);
     };
-  
+
     processFrame();
-  
+
     frameIntervalRef.current = setInterval(processFrame, 600);
   };
 
-
   const stopFrameProcessing = () => {
-    clearInterval(frameIntervalRef.current); 
+    clearInterval(frameIntervalRef.current);
     setProcessedFrame('');
     setIsProcessing(false);
   };
@@ -92,31 +96,35 @@ const App = () => {
       method: 'POST',
       body: JSON.stringify({ sign_language: signLanguage }),
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Cleared text:', data.clearedText);
-      setSignText('');
-    })
-    .catch((error) => {
-      console.error('Error clearing text:', error);
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Cleared text:', data.clearedText);
+        setSignText('');
+      })
+      .catch((error) => {
+        console.error('Error clearing text:', error);
+      });
   };
-  
 
   return (
     <div>
+    <Home/>
+    <div className="container">
+      
       <h1>Sign Language Recognition</h1>
-      <div>
+
+      <div className="predictionContainer">
         <label htmlFor="signLanguage">Select Sign Language:</label>
-        <select id="signLanguage">
+        <select id="signLanguage" className="signLabel">
           <option value="indian">Indian Sign Language</option>
           <option value="american">American Sign Language</option>
         </select>
       </div>
-      <div>
+
+      <div className="buttonContainer">
         {isProcessing ? (
           <div>
             <button onClick={stopFrameProcessing} disabled={!isProcessing}>
@@ -133,21 +141,50 @@ const App = () => {
           </div>
         )}
       </div>
+      
+      <div className='resultSection'>
+      
 
-      {processedFrame && (
-        <div>
-          <h2>Processed Frame</h2>
-          <img src={`data:image/jpeg;base64,${processedFrame}`} alt="Processed Frame" />
-        </div>
-      )}
-      {signText && (
-        <div>
+      
+        <div className="predictionResultContainer">
           <h2>Sign Language Prediction</h2>
-          <p>{signText}</p>
-          <button onClick={() => speakText(signText)}>Speak</button>
+          
+            <div>
+            {signText ? (
+                  <textarea className='result-text' style={{ width: '760px', height: '460px', fontSize:'2em' }} value={signText}></textarea>
+
+                ) : (
+                  <textarea className='result-text' style={{ width: '760px', height: '460px', fontSize:'2em' }} value={signText}></textarea>
+
+                )}
+
+          <div className="speakButton">
+            <button onClick={() => speakText(signText)}>Speak</button>
+          </div>
+          </div>
+        
         </div>
-      )}
-      <video ref={videoRef} autoPlay playsInline muted></video>
+      
+        
+        <div className='processedFullFrameContainer'>
+          <h2>Processed Frame</h2>
+          <div className="processedFrameContainer">
+          
+          {processedFrame && (
+          <img src={`data:image/jpeg;base64,${processedFrame}`} alt="Processed Frame" />
+          )}
+          </div>
+        </div>
+      
+        </div>
+      <button onClick={handleVideoClick} style={{ display: 'none' }}>
+        Play Video
+      </button>
+
+      <div className="showVideo">
+        <video ref={videoRef} autoPlay playsInline muted></video>
+      </div>
+    </div>
     </div>
   );
 };
